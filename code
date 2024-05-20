@@ -1,0 +1,5 @@
+set.seed(0)
+weight=rnorm(100, 5, 2)
+weight[2] = NA
+m = mean(weight, na.rm=T)
+m
