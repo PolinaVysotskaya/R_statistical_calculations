@@ -343,6 +343,59 @@ mcnemar.test(tab)
 # data:  tab
 # McNemar's chi-squared = 6.75, df = 1, p-value = 0.009375
 
+# однофакторный дисперсионный анализ
+set.seed(0)
+df=rbind(data.frame(score=rnorm(100, 3.5, 1.9), food='Огурчики'), data.frame(score=rnorm(100, 4.1, 1.6), food='Перец'), data.frame(score=rnorm(100, 6.8, 0.5), food='Рыба'))
+df
+anova=aov(score~food, df)
+summary(anova)
+
+#             Df Sum Sq Mean Sq F value Pr(>F)    
+# food          2  631.3  315.64   172.9 <2e-16 ***
+# Residuals   297  542.1    1.83                   
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+library(ggplot2)
+ggplot(df, aes(x=food, y=score))+stat_summary(fun.data = mean_cl_boot)
+# график 2 показывает что рыба оказывает значительное влияние на настроение
+
+# post hoc критерий с поправкой Бонферрони
+pairwise.t.test(df$score, df$food, p.adjust.method = 'bonferroni')
+
+# Pairwise comparisons using t tests with pooled SD 
+# data:  df$score and df$food 
+#      Огурчики Перец 
+# Перец 0.035    -     
+# Рыба  <2e-16   <2e-16
+# P value adjustment method: bonferroni 
+
+# двухфакторный дисперсионный анализ для повторных измерений
+library(MANOVA.RM)
+manova=RM(score~food*time, df, df, subject='cat_id', within='time')
+manova$ATS
+
+# выводим результат дисперсионного анализа
+#          Test statistic df1     df2 p-value
+# food              47.561   1 334.849   0.000
+# time               0.015   1     Inf   0.903
+# food:time         13.434   1     Inf   0.000
+
+manova$Descriptive
+# выводим описательную статистику
+#      food  time   n Means Lower 95 % CI Upper 95 % CI
+# 1 Огурчики    До 100 3.527         3.230         3.824
+# 3 Огурчики После 100 3.981         3.626         4.335
+# 2    Перец    До 100 3.127         2.694         3.561
+# 4    Перец После 100 2.703         2.464         2.942
+
+ggplot(df, aes(time, score, col=food))+stat_summary(fun.data = mean_cl_boot, position = position_dodge(0.2))
+# по х будет замер, а типы корма выделены цветом 
+# position = position_dodge(0.2), чтобы вертикальные линии не накладывались друг на друга
+
+# вариант orig, попроще
+plot(manova)
+
 
 
 
